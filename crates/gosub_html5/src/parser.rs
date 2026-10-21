@@ -326,7 +326,7 @@ fn charset_label_to_encoding(label: &str) -> Option<Encoding> {
 }
 
 impl<'a, C: HasDocument> Html5Parser<'a, C> {
-    // Initializes the parser for whole document parsing
+    /// Initialize the parser and retain its selected scripting mode on the document for serialization.
     fn init(
         tokenizer: Tokenizer<'a>,
         document: &'a mut C::Document,
@@ -372,7 +372,7 @@ impl<'a, C: HasDocument> Html5Parser<'a, C> {
         }
     }
 
-    /// Creates a new parser with a dummy document and dummy tokenizer. This is ONLY used for testing purposes.
+    /// Create a parser for tests with scripting enabled on both the parser and the supplied document.
     /// Regular users should use the `parse_document()` and `parse_fragment()` functions instead.
     pub fn new_parser(stream: &'a mut ByteStream, document: &'a mut C::Document, start_location: Location) -> Self {
         let error_logger = Rc::new(RefCell::new(ErrorLogger::new()));
@@ -1850,7 +1850,7 @@ impl<'a, C: HasDocument> Html5Parser<'a, C> {
         self.document.doctype() == DocumentType::IframeSrcDoc
     }
 
-    /// Enables or disables scripting
+    /// Update the parser and document scripting settings together, including `noscript` serialization.
     pub fn enabled_scripting(&mut self, enabled: bool) {
         self.scripting_enabled = enabled;
         self.document.set_scripting_enabled(enabled);

@@ -130,6 +130,8 @@ enum Step {
     CloseShadowRoot,
 }
 
+/// Append a subtree in the selected format using a heap work stack to keep deep trees stack-safe.
+/// Shadow roots are emitted as declarative templates before their host's light children.
 fn write_node<C: HasDocument>(root: NodeId, doc: &C::Document, format: Format, buf: &mut String) {
     let mut stack = vec![Step::Enter(root)];
 

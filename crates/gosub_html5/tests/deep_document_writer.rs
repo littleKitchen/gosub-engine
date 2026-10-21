@@ -25,6 +25,7 @@ impl ModuleConfiguration for Config {
 
 const REALISTIC_STACK: usize = 2 * 1024 * 1024;
 
+/// Both output formats preserve all 50,000 nesting levels while running on a 2 MiB worker stack.
 #[test]
 fn a_deeply_nested_document_serializes() {
     // Well past the ~5000 that used to abort. Tree construction is iterative, so nothing upstream
@@ -59,6 +60,7 @@ fn a_deeply_nested_document_serializes() {
     }
 }
 
+/// Ordinary HTML retains attributes and comments while void elements omit their closing tags.
 #[test]
 fn ordinary_documents_serialize_unchanged() {
     let mut stream = ByteStream::from_str(

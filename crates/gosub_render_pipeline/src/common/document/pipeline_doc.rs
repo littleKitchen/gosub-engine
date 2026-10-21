@@ -1506,6 +1506,7 @@ where
         self.doc.write_from_node(id)
     }
 
+    /// Serialize a real DOM subtree for the SVG XML decoder; synthetic layout nodes emit nothing.
     fn svg_xml(&self, id: NodeId) -> String {
         if is_pseudo_id(u64::from(id)) || is_anon_box_id(u64::from(id)) {
             return String::new();
