@@ -31,6 +31,7 @@ fn element_with_text(name: &str, namespace: Option<&str>, text: &str) -> (Docume
     (doc, element, child)
 }
 
+/// Text quotes stay literal, while attributes escape quotes and both contexts escape markup.
 #[test]
 fn text_and_attributes_use_their_respective_escape_modes() {
     let value = "&<>\u{a0}\"'é &amp;";
@@ -46,6 +47,7 @@ fn text_and_attributes_use_their_respective_escape_modes() {
     assert_eq!(doc.write_from_node(text), "&amp;&lt;&gt;&nbsp;\"'é &amp;amp;");
 }
 
+/// Data resembling an injected element or attribute remains data after a serialize/parse cycle.
 #[test]
 fn escaped_values_reparse_as_data_instead_of_markup_or_extra_attributes() {
     let value = "\"><img src=x onerror=alert(1)>&amp;\u{a0}";
@@ -66,6 +68,7 @@ fn escaped_values_reparse_as_data_instead_of_markup_or_extra_attributes() {
     assert_eq!(reparsed.text_value(reparsed.children(paragraph)[0]), Some(value));
 }
 
+/// Raw-text context comes from the actual HTML parent, even when only its text node is written.
 #[test]
 fn html_raw_text_is_literal_even_when_serializing_the_text_node_directly() {
     let value = "if (a < b && b > c) \"&nbsp;\u{a0}\"";
@@ -78,6 +81,7 @@ fn html_raw_text_is_literal_even_when_serializing_the_text_node_directly() {
     }
 }
 
+/// RCDATA is escaped on output so reparsing resolves character references back to the same text.
 #[test]
 fn rcdata_elements_still_escape_their_text() {
     for name in ["textarea", "title"] {
@@ -89,6 +93,7 @@ fn rcdata_elements_still_escape_their_text() {
     }
 }
 
+/// Both scripting modes round-trip noscript source despite producing different text in the DOM.
 #[test]
 fn noscript_serialization_retains_the_parser_scripting_flag() -> Result<(), Box<dyn std::error::Error>> {
     for scripting_enabled in [false, true] {
@@ -111,6 +116,7 @@ fn noscript_serialization_retains_the_parser_scripting_flag() -> Result<(), Box<
     Ok(())
 }
 
+/// A later DOM edit still serializes noscript according to the document's scripting state.
 #[test]
 fn noscript_uses_the_document_flag_for_programmatically_created_text() {
     let (mut doc, element, _) = element_with_text("noscript", Some(HTML_NAMESPACE), "&<b>\u{a0}");
@@ -122,6 +128,7 @@ fn noscript_uses_the_document_flag_for_programmatically_created_text() {
     );
 }
 
+/// Void serialization also omits children attached through DOM operations, including obsolete tags.
 #[test]
 fn html_void_elements_have_neither_end_tags_nor_serialized_children() {
     for name in [
@@ -133,6 +140,7 @@ fn html_void_elements_have_neither_end_tags_nor_serialized_children() {
     }
 }
 
+/// Matching an HTML tag name alone must not alter serialization of elements in other namespaces.
 #[test]
 fn foreign_names_do_not_get_html_void_or_raw_text_rules() {
     // DocumentImpl treats a missing namespace as HTML, so include an unrelated namespace
@@ -149,6 +157,7 @@ fn foreign_names_do_not_get_html_void_or_raw_text_rules() {
     }
 }
 
+/// Restoring an adjusted foreign attribute's prefix does not bypass attribute-value escaping.
 #[test]
 fn foreign_attributes_keep_their_prefixes_and_escape_their_values() {
     let (mut doc, element, _) = element_with_text("svg", Some(SVG_NAMESPACE), "&<text>");
@@ -159,6 +168,7 @@ fn foreign_attributes_keep_their_prefixes_and_escape_their_values() {
     );
 }
 
+/// XML output distinguishes literal entity spellings from NBSP and preserves normalized whitespace.
 #[test]
 fn xml_mode_escapes_raw_text_without_turning_literal_entities_into_characters() {
     let (mut doc, element, _) = element_with_text("script", Some(HTML_NAMESPACE), "&nbsp; &<>\u{a0}\r");
@@ -169,6 +179,7 @@ fn xml_mode_escapes_raw_text_without_turning_literal_entities_into_characters() 
     );
 }
 
+/// XML consumers require balanced tags even for HTML void elements inside foreignObject content.
 #[test]
 fn xml_mode_closes_html_void_elements_and_keeps_their_children() {
     let (doc, element, _) = element_with_text("br", Some(HTML_NAMESPACE), "&<tag>");

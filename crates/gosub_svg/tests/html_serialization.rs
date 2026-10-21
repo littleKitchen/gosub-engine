@@ -17,6 +17,7 @@ impl ModuleConfiguration for Config {
     type HtmlParser = Html5Parser<'static, Self>;
 }
 
+/// An HTML-parsed SVG reaches the XML decoder with escaped values and balanced foreign HTML tags.
 #[test]
 fn an_inline_svg_with_escaped_values_and_foreign_html_decodes() -> Result<(), Box<dyn std::error::Error>> {
     let doc = html_compile::<Config>(
