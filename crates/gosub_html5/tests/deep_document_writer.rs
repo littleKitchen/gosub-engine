@@ -37,21 +37,26 @@ fn a_deeply_nested_document_serializes() {
     html.push_str(&"</g>".repeat(DEPTH));
     html.push_str("</svg>");
 
-    let written = std::thread::Builder::new()
+    let (html, xml) = std::thread::Builder::new()
         .stack_size(REALISTIC_STACK)
         .spawn(move || {
             let mut stream = ByteStream::from_str(&html, Encoding::UTF8);
             let mut doc = DocumentBuilderImpl::new_document::<Config>(None);
             let _ = Html5Parser::<Config>::parse_document(&mut stream, &mut doc, None);
-            doc.write_from_node(NodeId::root())
+            (
+                doc.write_from_node(NodeId::root()),
+                doc.write_xml_from_node(NodeId::root()),
+            )
         })
         .expect("spawn")
         .join()
         .expect("serializing must not abort the process");
 
     // The whole subtree was written, not truncated by some depth cut-off.
-    assert_eq!(written.matches("<g>").count(), DEPTH);
-    assert_eq!(written.matches("</g>").count(), DEPTH);
+    for written in [html, xml] {
+        assert_eq!(written.matches("<g>").count(), DEPTH);
+        assert_eq!(written.matches("</g>").count(), DEPTH);
+    }
 }
 
 #[test]
@@ -65,6 +70,6 @@ fn ordinary_documents_serialize_unchanged() {
 
     assert_eq!(
         doc.write_from_node(NodeId::root()),
-        "<html><head></head><body><p class=\"x\">hello<!-- c --><br></br></p></body></html>"
+        "<html><head></head><body><p class=\"x\">hello<!-- c --><br></p></body></html>"
     );
 }
