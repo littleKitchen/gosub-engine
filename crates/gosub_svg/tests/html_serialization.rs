@@ -28,6 +28,12 @@ fn an_inline_svg_with_escaped_values_and_foreign_html_decodes() -> Result<(), Bo
         </svg>"#,
     );
     let id = doc.node_by_named_id("target").ok_or("inline SVG was not parsed")?;
+    // Decoding can succeed even if descriptive or foreign HTML content was lost.
+    let xml = doc.write_xml_from_node(id);
+    assert!(xml.contains("data-value=\"&amp;&quot;&lt;&gt;\u{a0}\""));
+    assert!(xml.contains("A &amp; B &lt; C &gt; D \u{a0} &amp;nbsp;"));
+    assert!(xml.contains("<br></br>"));
+    assert!(xml.contains(r#"<script>if (a &lt; b &amp;&amp; b &gt; c) "&amp;nbsp;";</script>"#));
     let svg = SVGDocument::from_html_doc::<Config>(id, doc)?;
     assert_eq!(svg.tree.size().width(), 20.0);
     assert_eq!(svg.tree.size().height(), 10.0);
